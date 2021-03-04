@@ -1,0 +1,325 @@
+1)Find -S
+
+Data=[['Sunny','Warm','Normal','Strong','Warm','Same','Yes'],
+      ['Sunny','Warm','High','Strong','Warm','Same','Yes'],
+      ['Sunny','Warm','Normal','Strong','Warm','Same','No'],
+      ['Sunny','Warm','High','Strong','Cool','Change','Yes']
+     ]
+
+h = ['0', '0', '0', '0', '0', '0']
+
+for row in Data:
+    if row[-1] == 'Yes':
+        j = 0
+        
+        for col in row:
+            if col != 'Yes':
+                if col != h[j] and h[j] == '0':
+                    h[j] = col
+                elif col != h[j] and h[j] != '0':
+                    h[j] = '?'
+                    print('Hypothesis: ', h)
+            j = j + 1
+    
+
+print('Final Hypothesis: ', h)
+
+
+2)Candidate Elimination
+
+import numpy as np 
+import pandas as pd 
+
+data = pd.DataFrame(data=pd.read_csv('Enjoy-sport.csv')) 
+
+concepts = np.array(data.iloc[:,0:-1])
+print(concepts) 
+target = np.array(data.iloc[:,-1])  
+print(target)
+
+
+def learn(concepts, target): 
+    specific_h = concepts[0].copy()     
+    print("initialization of specific_h and general_h")     
+    print(specific_h)  
+    general_h = [["?" for i in range(len(specific_h))] for i in range(len(specific_h))]     
+    #print(general_h)  
+    for i, h in enumerate(concepts):   
+        if target[i] == "yes": 
+            for x in range(len(specific_h)): 
+                if h[x]!= specific_h[x]:                    
+                    specific_h[x] ='?'                     
+                    general_h[x][x] ='?'
+                #print(specific_h)
+        print(specific_h)
+        if target[i] == "no":            
+            for x in range(len(specific_h)): 
+                if h[x]!= specific_h[x]:                    
+                    general_h[x][x] = specific_h[x]                
+                else:                    
+                    general_h[x][x] = '?'        
+        print(" steps of Candidate Elimination Algorithm",i+1)        
+        print(specific_h)         
+        print(general_h)  
+    indices = [i for i, val in enumerate(general_h) if val == ['?', '?', '?', '?', '?', '?']]    
+    for i in indices:   
+        general_h.remove(['?', '?', '?', '?', '?', '?']) 
+    return specific_h, general_h 
+s_final, g_final = learn(concepts, target)
+print("Final Specific_h:", s_final, sep="\n")
+print("Final General_h:", g_final, sep="\n") 
+data.head()
+
+3)K-Means
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+data=pd.read_csv("k_means.csv")
+
+data.head()
+
+darray=data.to_numpy()
+
+plt.scatter(data.X1,data.X2)
+
+from sklearn.cluster import KMeans
+
+kmeans=KMeans(n_clusters=3)
+
+kmeans.fit(data)
+
+clusters=kmeans.cluster_centers_
+clusters
+
+y=kmeans.fit_predict(data)
+
+y
+
+count=0
+for i in y:
+    if i==0:
+        plt.scatter(darray[count][0],darray[count][1],s=100,color="green")
+    elif i==1:
+        plt.scatter(darray[count][0],darray[count][1],s=100,color="blue")
+    else:
+        plt.scatter(darray[count][0],darray[count][1],s=100,color="red")
+    count += 1
+    
+plt.scatter(clusters[0][0],clusters[0][1],s=100,color="black",marker="*")
+plt.scatter(clusters[1][0],clusters[1][1],s=100,color="black",marker="*")
+plt.scatter(clusters[2][0],clusters[2][1],s=100,color="black",marker="*")
+
+4)Decision Tree
+
+import pandas as pd # load and manipulate data and for One-Hot Encoding
+import numpy as np # calculate the mean and standard deviation
+import matplotlib.pyplot as plt # drawing graphs
+from sklearn.tree import DecisionTreeClassifier # a classification tree
+from sklearn.tree import plot_tree # draw a classification tree
+from sklearn.model_selection import train_test_split # split data into training and testing sets
+from sklearn.model_selection import cross_val_score # cross validation
+from sklearn.metrics import confusion_matrix # creates a confusion matrix
+from sklearn.metrics import plot_confusion_matrix
+
+df=pd.read_csv("zoo_data.csv",header=None)
+
+y=df[16].copy()
+y.head()
+
+X=df.drop(16, axis=1).copy()
+X.head()
+
+df[12].unique()
+
+
+y.unique()
+
+for i in range(len(y)):
+    if y[i] <= 4:
+        y[i]=0
+    else:
+        y[i]=1
+
+y.unique()    
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+clf_dt = DecisionTreeClassifier(random_state=42)
+clf_dt = clf_dt.fit(X_train, y_train)
+y_pred=clf_dt.predict(X_test)
+plot_confusion_matrix(clf_dt, X_test, y_test,cmap=plt.cm.Blues, display_labels=["0", "1"])
+plt.figure(figsize=(15,7.5))
+plot_tree(clf_dt, 
+          filled=True, 
+          rounded=True, 
+          class_names=["No", "Yes"], 
+          feature_names=X.columns)
+
+from sklearn import metrics
+
+print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+
+5)Linear Regression
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+data=pd.read_csv('Food-Truck-LineReg.csv')
+X = data.iloc[:,0].values.reshape(-1,1)
+Y = data.iloc[:,1].values.reshape(-1,1)
+linear_regression=LinearRegression()
+linear_regression.fit(X,Y)
+Y_pred=linear_regression.predict(X)
+plt.scatter(X,Y)
+plt.plot(X,Y_pred,color='green')
+plt.show()
+
+6)Logistic Regression
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+
+data = pd.read_csv('heart.csv')
+x=data.drop('target',axis=1)
+y=data.target
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=109)
+classifier = LogisticRegression(random_state = 0)
+classifier.fit(x_train, y_train)
+y_pred=classifier.predict(x_test)
+cm = confusion_matrix(y_test,y_pred)
+print(cm)
+fp=cm.sum(axis=0)-np.diag(cm)
+fn=cm.sum(axis=1)-np.diag(cm)
+tp=np.diag(cm)
+tn=cm.sum()-(fp+fn+tp)
+print("false positives:{}".format(fp))
+print("false negatives:{}".format(fn))
+print("true positives:{}".format(tp))
+print("true negatives:{}".format(tn))
+tnr = tn/(tn+fp)
+print("tnr:{}".format(tnr))
+tpr = tp/(tp+fn)
+print("tpr:{}".format(tpr))
+acc = (tp+tn)/(tp+tn+fp+fn)
+print("acc: {}".format(acc))
+recall = (tp/(tp+fp))
+print("recall:{}".format(recall))
+precision = (tp/(tp+fn))
+print("precision:{}".format(precision))
+Fscore = 2*(precision*recall)/(precision+recall)
+print("Fscore: {}".format(Fscore))
+
+PART - B
+
+1)Naive Bayes
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+
+data = pd.read_csv('heart.csv')
+x=data.drop('target',axis=1)
+y=data.target
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=109)
+ml = GaussianNB()
+ml.fit(x_train,y_train)
+y_pred=ml.predict(x_test)
+cm = confusion_matrix(y_test,y_pred)
+print(cm)
+FP = cm.sum(axis=0) - np.diag(cm)
+FN = cm.sum(axis=1) - np.diag(cm)
+TP = np.diag(cm)
+TN = cm.sum() - (FP + FN + TP)
+print('False Positives\n {}'.format(FP))
+print('False Negetives\n {}'.format(FN))
+print('True Positives\n {}'.format(TP))
+print('True Negetives\n {}'.format(TN))
+TPR = TP/(TP+FN)
+print('Sensitivity \n {}'.format(TPR))
+TNR = TN/(TN+FP)
+print('Specificity \n {}'.format(TNR))
+Precision = TP/(TP+FP)
+print('Precision \n {}'.format(Precision))
+Recall = TP/(TP+FN)
+print('Recall \n {}'.format(Recall))
+Acc = (TP+TN)/(TP+TN+FP+FN)
+print('Áccuracy \n{}'.format(Acc))
+Fscore = 2*(Precision*Recall)/(Precision+Recall)
+print('FScore \n{}'.format(Fscore))
+
+2) SVM
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn import svm 
+from sklearn import metrics 
+from sklearn.metrics import confusion_matrix
+
+data = pd.read_csv("heart.csv")
+x = data.drop('target',axis = 1) 
+y = data.target
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3,random_state=109)
+ml = svm.SVC(kernel='linear')
+ml.fit(x_train, y_train)
+y_pred = ml.predict(x_test)
+cm = confusion_matrix(y_test,y_pred)
+print(cm)
+FP = cm.sum(axis=0) - np.diag(cm)
+FN = cm.sum(axis=1) - np.diag(cm)
+TP = np.diag(cm)
+TN = cm.sum() - (FP + FN + TP)
+print('False Positives\n {}'.format(FP))
+print('False Negetives\n {}'.format(FN))
+print('True Positives\n {}'.format(TP))
+print('True Negetives\n {}'.format(TN))
+TPR = TP/(TP+FN)
+print('Sensitivity \n {}'.format(TPR))
+TNR = TN/(TN+FP)
+print('Specificity \n {}'.format(TNR))
+Precision = TP/(TP+FP)
+print('Precision \n {}'.format(Precision))
+Recall = TP/(TP+FN)
+print('Recall \n {}'.format(Recall))
+Acc = (TP+TN)/(TP+TN+FP+FN)
+print('Áccuracy \n{}'.format(Acc))
+Fscore = 2*(Precision*Recall)/(Precision+Recall)
+print('FScore \n{}'.format(Fscore))
+
+3)Random Forest
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestRegressor
+from sklearn import metrics
+
+dataset = pd.read_csv("petrol_consumption.csv")
+dataset
+dataset.head()
+X = dataset.iloc[:, 0:4].values
+y = dataset.iloc[:, 4].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+regressor = RandomForestRegressor(n_estimators=200, random_state=0)
+regressor.fit(X_train, y_train)
+y_pred = regressor.predict(X_test)
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
+print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
